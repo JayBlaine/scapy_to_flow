@@ -74,41 +74,6 @@ def create_flow_entry(i: int, df: pd.DataFrame):
         new_flow.ip_fwd_ttl_mean = float(df["ip_ttl"][i])
         new_flow.ip_fwd_ttl_std = 0.0
 
-    """
-    WLAN FEATURES
-    """
-
-    new_flow.wlan_src_addr = str(df["wlan_src_addr"][i])
-    new_flow.wlan_dst_addr = str(df["wlan_dst_addr"][i])
-    new_flow.wlan_rcv_addr = str(df["wlan_rcv_addr"][i])
-    new_flow.wlan_trn_addr = str(df["wlan_tran_addr"][i])
-
-    new_flow.wlan_trans_rate_max = float(df["wlan_tx_rate"][i])
-    new_flow.wlan_trans_rate_min = float(df["wlan_tx_rate"][i])
-    new_flow.wlan_trans_rate_mean = float(df["wlan_tx_rate"][i])
-    new_flow.wlan_trans_rate_std = 0.0
-
-    antenna_raw = re.search('([0-9]{1,2})', str(df["wlan_antenna_signal"][i]))
-    antenna_signal = int(antenna_raw[0]) if antenna_raw is not None else 0
-
-    new_flow.wlan_antenna_signal_max = antenna_signal
-    new_flow.wlan_antenna_signal_min = antenna_signal
-    new_flow.wlan_antenna_signal_mean = float(antenna_signal)
-    new_flow.wlan_antenna_signal_std = 0.0
-
-    new_flow.wlan_fwd_antenna_signal_max = antenna_signal
-    new_flow.wlan_fwd_antenna_signal_min = antenna_signal
-    new_flow.wlan_fwd_antenna_signal_mean = float(antenna_signal)
-    new_flow.wlan_fwd_antenna_signal_std = 0.0
-
-    new_flow.wlan_duration_cnt += 1
-    new_flow.wlan_duration_max = int(df["wlan_duration"][i])
-    new_flow.wlan_duration_min = int(df["wlan_duration"][i])
-    new_flow.wlan_duration_mean = float(df["wlan_duration"][i])
-    new_flow.wlan_duration_std = 0.0
-
-    if df["wlan_retry"][i] == "Frame is being retransmitted":
-        new_flow.wlan_retry_flag_count += 1
 
     return new_flow
 
@@ -273,78 +238,6 @@ def update_flow_entry(i: int, flow: Flow, df: pd.DataFrame, dir: int):  # dir 1 
 
         if updated_flow.ip_bwd_pkt_tot_num == 2 and updated_flow.ip_proto == 0:  # s/a -> data
             updated_flow.tcp_bwd_init_win = int(df["tcp_window_size_value"][i])
-
-    """
-    WiFI FEATURES
-    """
-    if int(df["wlan_duration"][i]) > updated_flow.wlan_duration_max:
-        updated_flow.wlan_duration_max = int(df["wlan_duration"][i])
-    if int(df["wlan_duration"][i]) < updated_flow.wlan_duration_min:
-        updated_flow.wlan_duration_min = int(df["wlan_duration"][i])
-    oldavg = updated_flow.wlan_duration_mean
-    updated_flow.wlan_duration_mean = oldavg + (int(df["wlan_duration"][i]) - oldavg) / updated_flow.ip_pkt_tot_num
-    oldstd = updated_flow.wlan_duration_std
-    updated_flow.wlan_duration_std = oldstd + (
-                abs(int(df["wlan_duration"][i]) - oldavg) - oldstd) / updated_flow.ip_pkt_tot_num
-
-    if float(df["wlan_tx_rate"][i]) > updated_flow.wlan_trans_rate_max:
-        updated_flow.wlan_trans_rate_max = float(df["wlan_tx_rate"][i])
-    if float(df["wlan_tx_rate"][i]) < updated_flow.wlan_trans_rate_min:
-        updated_flow.wlan_trans_rate_min = float(df["wlan_tx_rate"][i])
-    oldavg = updated_flow.wlan_trans_rate_mean
-    updated_flow.wlan_trans_rate_mean = oldavg + (float(df["wlan_tx_rate"][i]) - oldavg) / updated_flow.ip_pkt_tot_num
-    oldstd = updated_flow.wlan_trans_rate_std
-    updated_flow.wlan_trans_rate_std = oldstd + (
-                abs(float(df["wlan_tx_rate"][i]) - oldavg) - oldstd) / updated_flow.ip_pkt_tot_num
-
-    """
-    Signals
-    """
-
-    # TODO: TypeError: re.search second param: Some rows missing signal?? Make equal average or 0 if new
-    antenna_raw = re.search('([0-9]{1,2})', str(df["wlan_antenna_signal"][i]))
-    antenna_signal = int(antenna_raw[0]) if antenna_raw is not None else int(updated_flow.wlan_antenna_signal_mean)
-
-    if antenna_signal > updated_flow.wlan_antenna_signal_max:
-        updated_flow.wlan_antenna_signal_max = antenna_signal
-    if antenna_signal < updated_flow.wlan_antenna_signal_min:
-        updated_flow.wlan_antenna_signal_min = antenna_signal
-    oldavg = updated_flow.wlan_antenna_signal_mean
-    updated_flow.wlan_antenna_signal_mean = oldavg + (antenna_signal - oldavg) / updated_flow.ip_pkt_tot_num
-    oldstd = updated_flow.wlan_antenna_signal_std
-    updated_flow.wlan_antenna_signal_std = oldstd + (
-                abs(antenna_signal - oldavg) - oldstd) / updated_flow.ip_pkt_tot_num
-
-    if dir == 1:
-        if antenna_signal > updated_flow.wlan_fwd_antenna_signal_max:
-            updated_flow.wlan_fwd_antenna_signal_max = antenna_signal
-        if antenna_signal < updated_flow.wlan_fwd_antenna_signal_min:
-            updated_flow.wlan_fwd_antenna_signal_min = antenna_signal
-        oldavg = updated_flow.wlan_fwd_antenna_signal_mean
-        updated_flow.wlan_fwd_antenna_signal_mean = oldavg + (antenna_signal - oldavg) / updated_flow.ip_fwd_pkt_tot_num
-        oldstd = updated_flow.wlan_fwd_antenna_signal_std
-        updated_flow.wlan_fwd_antenna_signal_std = oldstd + (
-                    abs(antenna_signal - oldavg) - oldstd) / updated_flow.ip_fwd_pkt_tot_num
-    if dir == 2:
-        if updated_flow.ip_bwd_pkt_tot_num == 1:  # first backward packet
-            updated_flow.wlan_bwd_antenna_signal_max = antenna_signal
-            updated_flow.wlan_bwd_antenna_signal_min = antenna_signal
-            updated_flow.wlan_bwd_antenna_signal_mean = float(antenna_signal)
-            updated_flow.wlan_bwd_antenna_signal_std = 0.0
-        else:
-            if antenna_signal > updated_flow.wlan_bwd_antenna_signal_max:
-                updated_flow.wlan_bwd_antenna_signal_max = antenna_signal
-            if antenna_signal < updated_flow.wlan_bwd_antenna_signal_min:
-                updated_flow.wlan_bwd_antenna_signal_min = antenna_signal
-            oldavg = updated_flow.wlan_bwd_antenna_signal_mean
-            updated_flow.wlan_bwd_antenna_signal_mean = oldavg + (
-                        antenna_signal - oldavg) / updated_flow.ip_bwd_pkt_tot_num
-            oldstd = updated_flow.wlan_bwd_antenna_signal_std
-            updated_flow.wlan_bwd_antenna_signal_std = oldstd + (
-                        abs(antenna_signal - oldavg) - oldstd) / updated_flow.ip_bwd_pkt_tot_num
-
-    if df["wlan_retry"][i] == "Frame is being retransmitted":
-        updated_flow.wlan_retry_flag_count += 1
 
     return updated_flow
 
