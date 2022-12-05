@@ -3,7 +3,7 @@ from flow import Flow
 import re
 
 
-def create_flow_entry(i: int, df: pd.DataFrame):
+def create_flow_entry(i: int, df: pd.DataFrame):  # TODO: CONVERT FROM DF TO SCAPY FIELDS
     new_flow = Flow()
 
     new_flow.flow_start = float(df["time"][i])
@@ -79,6 +79,7 @@ def create_flow_entry(i: int, df: pd.DataFrame):
 
 
 def update_flow_entry(i: int, flow: Flow, df: pd.DataFrame, dir: int):  # dir 1 = fwd, 2 = bwd
+    # TODO: CONVERT FROM DF TO SCAPY FIELDS
     updated_flow = flow
     updated_flow.flow_cur_time = float(df["time"][i])
 
