@@ -1,77 +1,82 @@
 import pandas as pd
+from scapy.layers.inet import TCP, UDP, ICMP, IP
+from scapy.packet import Packet
+import time
 from flow import Flow
 import re
 
 
-def create_flow_entry(i: int, df: pd.DataFrame):  # TODO: CONVERT FROM DF TO SCAPY FIELDS
+def create_flow_entry(i: int, pkt: Packet):  # TODO: CONVERT FROM DF TO SCAPY FIELDS
     new_flow = Flow()
 
-    new_flow.flow_start = float(df["time"][i])
-    new_flow.flow_cur_time = float(df["time"][i])
+    new_flow.flow_start = time.time()
+    new_flow.flow_cur_time = time.time()
 
-    new_flow.ip_addr_src = str(df["ip_src"][i])
-    new_flow.ip_addr_dst = str(df["ip_dst"][i])
-    new_flow.ip_port_src = int(df["ip_src_port"][i])
-    new_flow.ip_port_dst = int(df["ip_dst_port"][i])
-    if str(df["ip_tr_proto"][i]) == "TCP":
+    new_flow.ip_addr_src = pkt.src
+    new_flow.ip_addr_dst = pkt.dst
+    new_flow.ip_port_src = pkt.sport
+    new_flow.ip_port_dst = pkt.dport
+    if pkt.haslayer(TCP):
         new_flow.ip_proto = 0
-    elif str(df["ip_tr_proto"][i]) == "UDP":
+    elif pkt.haslayer(UDP):
         new_flow.ip_proto = 1
-    elif str(df["ip_tr_proto"][i]) == "ICMP":
+    elif pkt.haslayer(ICMP):
         new_flow.ip_proto = 2
 
     new_flow.ip_fwd_pkt_tot_num = 1
-    new_flow.ip_fwd_pkt_tot_len = int(df["ip_total_len"][i])
-    new_flow.ip_fwd_pkt_len_max = int(df["ip_total_len"][i])
-    new_flow.ip_fwd_pkt_len_min = int(df["ip_total_len"][i])
-    new_flow.ip_fwd_pkt_len_mean = float(df["ip_total_len"][i])
+    new_flow.ip_fwd_pkt_tot_len = int(pkt[IP].len)
+    new_flow.ip_fwd_pkt_len_max = int(pkt[IP].len)
+    new_flow.ip_fwd_pkt_len_min = int(pkt[IP].len)
+    new_flow.ip_fwd_pkt_len_mean = float(pkt[IP].len)
     new_flow.ip_fwd_pkt_len_std = 0.0
 
     new_flow.ip_pkt_tot_num = 1
-    new_flow.ip_pkt_tot_len = int(df["ip_total_len"][i])
-    new_flow.ip_pkt_len_max = int(df["ip_total_len"][i])
-    new_flow.ip_pkt_len_min = int(df["ip_total_len"][i])
-    new_flow.ip_pkt_len_mean = float(df["ip_total_len"][i])
+    new_flow.ip_pkt_tot_len = int(pkt[IP].len)
+    new_flow.ip_pkt_len_max = int(pkt[IP].len)
+    new_flow.ip_pkt_len_min = int(pkt[IP].len)
+    new_flow.ip_pkt_len_mean = float(pkt[IP].len)
     new_flow.ip_pkt_len_std = 0.0
 
     """
     TCP/IP FLAGS
     """
+    if pkt.haslayer(TCP):
+        if 'U' in pkt[TCP].flags:
+            new_flow.tcp_fwd_urg_flags += 1
+            new_flow.tcp_urg_flag_count += 1
 
-    if df["ip_dont_fragment"][i] == "Set":
-        new_flow.ip_dont_frag_count += 1
+        if 'P' in pkt[TCP].flags:
+            new_flow.tcp_fwd_psh_flags += 1
+            new_flow.tcp_psh_flag_count += 1
 
-    if df["tcp_push"][i] == "Set":
-        new_flow.tcp_fwd_psh_flags += 1
-        new_flow.tcp_psh_flag_count += 1
-    if df["tcp_urgent"][i] == "Set":
-        new_flow.tcp_fwd_urg_flags += 1
-        new_flow.tcp_urg_flag_count += 1
-    if df["tcp_fin"][i] == "Set":
-        new_flow.tcp_fin_flag_count += 1
-    if df["tcp_syn"][i] == "Set":
-        new_flow.tcp_syn_flag_count += 1
-    if df["tcp_reset"][i] == "Set":
-        new_flow.tcp_rst_flag_count += 1
-    if df["tcp_ack"][i] == "Set":
-        new_flow.tcp_ack_flag_count += 1
-    if df["tcp_cwr"][i] == "Set":
-        new_flow.tcp_cwr_flag_count += 1
-    if df["tcp_ecn_echo"][i] == "Set":
-        new_flow.tcp_ece_flag_count += 1
+        if 'F' in pkt[TCP].flags:
+            new_flow.tcp_fin_flag_count += 1
+        if 'S' in pkt[TCP].flags:
+            new_flow.tcp_syn_flag_count += 1
+        if 'R' in pkt[TCP].flags:
+            new_flow.tcp_rst_flag_count += 1
+        if 'A' in pkt[TCP].flags:
+            new_flow.tcp_ack_flag_count += 1
+        if 'C' in pkt[TCP].flags:
+            new_flow.tcp_cwr_flag_count += 1
+        if 'E' in pkt[TCP].flags:
+            new_flow.tcp_ece_flag_count += 1
 
     """
     TCP/IP MISC
     """
-    if int(df["ip_ttl"][i]) > 0:
-        new_flow.ip_ttl_max = int(df["ip_ttl"][i])
-        new_flow.ip_ttl_min = int(df["ip_ttl"][i])
-        new_flow.ip_ttl_mean = float(df["ip_ttl"][i])
+    if pkt[IP].frag == 1:
+        new_flow.ip_dont_frag_count += 1
+
+    if pkt[IP].ttl > 0:
+        new_flow.ip_ttl_max = int(pkt[IP].ttl)
+        new_flow.ip_ttl_min = int(pkt[IP].ttl)
+        new_flow.ip_ttl_mean = float(pkt[IP].ttl)
         new_flow.ip_ttl_std = 0.0
 
-        new_flow.ip_fwd_ttl_max = int(df["ip_ttl"][i])
-        new_flow.ip_fwd_ttl_min = int(df["ip_ttl"][i])
-        new_flow.ip_fwd_ttl_mean = float(df["ip_ttl"][i])
+        new_flow.ip_fwd_ttl_max = int(pkt[IP].ttl)
+        new_flow.ip_fwd_ttl_min = int(pkt[IP].ttl)
+        new_flow.ip_fwd_ttl_mean = float(pkt[IP].ttl)
         new_flow.ip_fwd_ttl_std = 0.0
 
 
