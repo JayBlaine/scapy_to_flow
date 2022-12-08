@@ -164,11 +164,17 @@ def update_flow_entry(flow: Flow, pkt: Packet, dir: int):  # dir 1 = fwd, 2 = bw
 
     if pkt.haslayer(TCP):
         if 'U' in pkt[TCP].flags:
-            updated_flow.tcp_fwd_urg_flags += 1
+            if dir == 1:
+                updated_flow.tcp_fwd_urg_flags += 1
+            elif dir == 2:
+                updated_flow.tcp_bwd_urg_flags += 1
             updated_flow.tcp_urg_flag_count += 1
 
         if 'P' in pkt[TCP].flags:
-            updated_flow.tcp_fwd_psh_flags += 1
+            if dir == 1:
+                updated_flow.tcp_fwd_psh_flags += 1
+            elif dir == 2:
+                updated_flow.tcp_bwd_psh_flags += 1
             updated_flow.tcp_psh_flag_count += 1
 
         if 'F' in pkt[TCP].flags:
