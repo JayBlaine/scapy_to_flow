@@ -1,21 +1,21 @@
-from flow_reader import read_pkts, flows
+from flow_tracker import FlowTracker
 import time
 
 # TODO: argparse for hcyte usage
 
 
 def main():
-    t = read_pkts(interface='eno1', filename='test.csv')
+    t = FlowTracker(iface="eno1")
 
-    t.start()
+    t.sniffer.start()
     i = 0
     while i < 75:
-        print(flows)
+        print(t.flows)
         print()
         i += 1
         time.sleep(1)
     # TODO: IF ALERT, LABEL MALICIOUS
-    t.stop()
+    t.sniffer.stop()
 
 
 if __name__ == "__main__":
