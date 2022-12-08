@@ -27,7 +27,7 @@ class FlowTracker:
         :param filename: CSV file to write completed flows to
         :param flows: Dictionary of active flows
         :param timeout: Int for how long after a packet to call a flow inactive
-        :param stop: Into for how ong the sniffer is active
+        :param stop: Int for how long the sniffer is active
         """
         if filename is not None:
             self.filename = filename
@@ -48,6 +48,24 @@ class FlowTracker:
                                     prn=prn_scapy(flows=self.flows, writefile=self.filename, timeout=self.timeout),
                                     filter='ip and (tcp or udp)', timeout=stop)
                                                                 # and (host 64.183.181.215 or 192.168.50.0/24)
+
+    def final_cleanup(self):
+        """
+        Call after sniffer stops to write open flows to csv
+
+        """
+        for j in self.flows.copy().keys():
+            # flow over, write to csv, remove from dict
+            self.flows[j].ip_all_flow_duration = self.flows[j].flow_cur_time - self.flows[j].flow_start
+            # label=0 default
+            self.flows[j] = flow_cleanup(flow=self.flows[j])
+            # flow_buf.append(flows[j]._get_all()[:-1])
+            with open(self.filename, 'a') as f:
+                w_obj = csv.writer(f)
+                w_obj.writerow(self.flows[j]._get_all())
+                f.close()
+            self.flows.pop(j)
+
 
 def prn_scapy(flows: dict, writefile: str, timeout: int):
     """
