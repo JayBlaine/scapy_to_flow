@@ -12,7 +12,7 @@ from flow_handler import create_flow_entry, update_flow_entry, flow_cleanup
 
 
 class FlowTracker:
-    filename: str = "{}.csv".format(dt.datetime.now().strftime("%Y-%m-%d_%H-%M"))
+    filename: str = "flows_{}.csv".format(dt.datetime.now().strftime("%Y-%m-%d_%H-%M"))
     sniffer: AsyncSniffer = None
     flows: dict = {}
     # dict of Flows(cls)
@@ -84,7 +84,7 @@ def prn_scapy(flows: dict, writefile: str, timeout: int):
             flows[flowid] = update_flow_entry(flow=flows[flowid], pkt=pkt, direction=1)
 
         elif flowid_rev in flows.keys():  # bwd
-            flows[flowid] = update_flow_entry(flow=flows[flowid_rev], pkt=pkt, direction=2)
+            flows[flowid_rev] = update_flow_entry(flow=flows[flowid_rev], pkt=pkt, direction=2)
 
         else:
             flows[flowid] = create_flow_entry(pkt=pkt)

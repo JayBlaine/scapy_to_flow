@@ -5,7 +5,7 @@ import sys
 import time
 
 
-def follow(file):
+def follow(file, t):
     """
     Behaves like tail -f: follows file and returns new lines as they're appended
 
@@ -21,4 +21,6 @@ def follow(file):
                 continue
             yield line
     except KeyboardInterrupt:
+        t.sniffer.stop()
+        t.final_cleanup()
         sys.exit(1)

@@ -14,7 +14,7 @@ class Flow:
     ip_addr_dst: str = "0.0.0.0"
     ip_port_src: int = 0
     ip_port_dst: int = 0
-    ip_proto: int = -1  # 0: TCP 1: UDP 2: ICMP
+    ip_proto: str = 'NA'  # 0: TCP 1: UDP 2: ICMP
 
     ip_fwd_pkt_tot_num: int = 0  # src -> dst
     ip_fwd_pkt_tot_len: int = 0

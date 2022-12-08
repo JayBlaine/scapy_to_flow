@@ -15,11 +15,11 @@ def create_flow_entry(pkt: Packet):
     new_flow.ip_port_src = pkt.sport
     new_flow.ip_port_dst = pkt.dport
     if pkt.haslayer(TCP):
-        new_flow.ip_proto = 0
+        new_flow.ip_proto = 'TCP'
     elif pkt.haslayer(UDP):
-        new_flow.ip_proto = 1
-    elif pkt.haslayer(ICMP):
-        new_flow.ip_proto = 2
+        new_flow.ip_proto = 'UDP'
+    elif pkt.haslayer(ICMP): # NOT IMPLEMENTED
+        new_flow.ip_proto = 'ICMP'
 
     new_flow.ip_fwd_pkt_tot_num = 1
     new_flow.ip_fwd_pkt_tot_len = int(pkt[IP].len)
@@ -76,7 +76,6 @@ def create_flow_entry(pkt: Packet):
         new_flow.ip_fwd_ttl_min = int(pkt[IP].ttl)
         new_flow.ip_fwd_ttl_mean = float(pkt[IP].ttl)
         new_flow.ip_fwd_ttl_std = 0.0
-
 
     return new_flow
 
@@ -217,7 +216,7 @@ def update_flow_entry(flow: Flow, pkt: Packet, direction: int):  # dir 1 = fwd, 
         updated_flow.ip_fwd_ttl_std = oldstd + (
                 abs(int(pkt[IP].ttl) - oldavg) - oldstd) / updated_flow.ip_fwd_pkt_tot_num
 
-        if updated_flow.ip_fwd_pkt_tot_num == 3 and updated_flow.ip_proto == 0:  # s -> s/a -> data
+        if updated_flow.ip_fwd_pkt_tot_num == 3 and updated_flow.ip_proto == 'TCP':  # s -> s/a -> data
             updated_flow.tcp_fwd_init_win = int(pkt[TCP].window)
 
     """
@@ -242,7 +241,7 @@ def update_flow_entry(flow: Flow, pkt: Packet, direction: int):  # dir 1 = fwd, 
             updated_flow.ip_bwd_ttl_std = oldstd + (
                         abs(int(pkt[IP].ttl) - oldavg) - oldstd) / updated_flow.ip_bwd_pkt_tot_num
 
-        if updated_flow.ip_bwd_pkt_tot_num == 2 and updated_flow.ip_proto == 0:  # s/a -> data
+        if updated_flow.ip_bwd_pkt_tot_num == 2 and updated_flow.ip_proto == 'TCP':  # s/a -> data
             updated_flow.tcp_bwd_init_win = int(pkt[TCP].window)
 
     return updated_flow
