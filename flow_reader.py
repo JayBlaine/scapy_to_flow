@@ -31,7 +31,7 @@ def prn_scapy(flows: dict, writefile: str):
                 flow over, write to returning df, remove from dict
                 """
                 flows[j].ip_all_flow_duration = flows[j].flow_cur_time - flows[j].flow_start
-                flows[j].label = 0
+                # label=0 default
                 flows[j] = flow_cleanup(flow=flows[j])
                 #flow_buf.append(flows[j]._get_all()[:-1])
                 with open(writefile, 'a') as f:
