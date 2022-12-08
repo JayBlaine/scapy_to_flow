@@ -19,7 +19,7 @@ class FlowTracker:
     interface: str
     timeout: int = 60
 
-    def __init__(self, iface: str, filename: str = None, flows: dict = None, timeout: int = None):
+    def __init__(self, iface: str, filename: str = None, flows: dict = None, timeout: int = None, stop: int = 90):
         """
         Main handler for tracking flows from live capture
 
@@ -45,7 +45,7 @@ class FlowTracker:
         # sniff(iface=interface, session=IPSession, prn=prn_scapy(flows=flows, writefile=filename), filter='ip and (tcp or udp)')
         self.sniffer = AsyncSniffer(iface=self.interface, session=IPSession,
                                     prn=prn_scapy(flows=self.flows, writefile=self.filename, timeout=self.timeout),
-                                    filter='ip and (tcp or udp)')
+                                    filter='ip and (tcp or udp)', timeout=stop)
 
 
 def prn_scapy(flows: dict, writefile: str, timeout: int):

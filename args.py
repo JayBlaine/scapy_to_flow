@@ -7,6 +7,8 @@ def parse_args():
                         default="eno1", help="Interface to listen to")
     parser.add_argument("-t", "--timeout", type=int, required=False,
                         default=60, help="How long after a packet until flow is inactive")
+    parser.add_argument("-s", "--stop", type=int, required=False,
+                        default=86400, help="How long to capture for")
     parser.add_argument("-r", "--read", type=str, required=False,
                         default="/mnt/captures/snort_internal/alert",
                         help="path to alert file to be read from. (Snort fast alert)")
