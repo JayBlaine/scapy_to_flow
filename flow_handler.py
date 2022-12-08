@@ -81,7 +81,7 @@ def create_flow_entry(pkt: Packet):
     return new_flow
 
 
-def update_flow_entry(flow: Flow, pkt: Packet, dir: int):  # dir 1 = fwd, 2 = bwd
+def update_flow_entry(flow: Flow, pkt: Packet, direction: int):  # dir 1 = fwd, 2 = bwd
     updated_flow = flow
     updated_flow.flow_cur_time = time.time()
 
@@ -105,7 +105,7 @@ def update_flow_entry(flow: Flow, pkt: Packet, dir: int):  # dir 1 = fwd, 2 = bw
     """
     FWD FLOW FEATURES
     """
-    if dir == 1:
+    if direction == 1:
         updated_flow.ip_fwd_pkt_tot_num += 1
         updated_flow.ip_fwd_pkt_tot_len += int(pkt[IP].len)
         if int(pkt[IP].len) > updated_flow.ip_fwd_pkt_len_max:
@@ -128,7 +128,7 @@ def update_flow_entry(flow: Flow, pkt: Packet, dir: int):  # dir 1 = fwd, 2 = bw
     BWD FLOW FEATURES
     """
 
-    if dir == 2:
+    if direction == 2:
         if updated_flow.ip_bwd_pkt_tot_num == 0:  # first backward packet
             updated_flow.ip_bwd_pkt_tot_num = 1
             updated_flow.ip_bwd_pkt_tot_len = int(pkt[IP].len)
@@ -161,16 +161,16 @@ def update_flow_entry(flow: Flow, pkt: Packet, dir: int):  # dir 1 = fwd, 2 = bw
 
     if pkt.haslayer(TCP):
         if 'U' in pkt[TCP].flags:
-            if dir == 1:
+            if direction == 1:
                 updated_flow.tcp_fwd_urg_flags += 1
-            elif dir == 2:
+            elif direction == 2:
                 updated_flow.tcp_bwd_urg_flags += 1
             updated_flow.tcp_urg_flag_count += 1
 
         if 'P' in pkt[TCP].flags:
-            if dir == 1:
+            if direction == 1:
                 updated_flow.tcp_fwd_psh_flags += 1
-            elif dir == 2:
+            elif direction == 2:
                 updated_flow.tcp_bwd_psh_flags += 1
             updated_flow.tcp_psh_flag_count += 1
 
@@ -206,7 +206,7 @@ def update_flow_entry(flow: Flow, pkt: Packet, dir: int):  # dir 1 = fwd, 2 = bw
     TCP/IP FWD MISC
     """
 
-    if dir == 1:
+    if direction == 1:
         if int(pkt[IP].ttl) > updated_flow.ip_fwd_ttl_max:
             updated_flow.ip_fwd_ttl_max = int(pkt[IP].ttl)
         if int(pkt[IP].ttl) < updated_flow.ip_fwd_ttl_min:
@@ -223,7 +223,7 @@ def update_flow_entry(flow: Flow, pkt: Packet, dir: int):  # dir 1 = fwd, 2 = bw
     """
     TCP/IP BWD MISC
     """
-    if dir == 2:
+    if direction == 2:
         if updated_flow.ip_bwd_pkt_tot_num == 1:  # first backward packet
             if int(pkt[IP].ttl) > 0:
                 updated_flow.ip_bwd_ttl_max = int(pkt[IP].ttl)

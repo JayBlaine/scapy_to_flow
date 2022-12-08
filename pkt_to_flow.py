@@ -11,6 +11,7 @@ def main():
     i = 0
     while i < 75:
         print(flows)
+        print()
         i += 1
         time.sleep(1)
     # TODO: IF ALERT, LABEL MALICIOUS

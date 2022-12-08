@@ -12,14 +12,14 @@ from flow_handler import create_flow_entry, update_flow_entry, flow_cleanup
 
 def prn_scapy(flows: dict, writefile: str):
     def read_pkt(pkt: Packet):
-        flowid = "{}:{}--{}:{}".format(pkt[IP].src, pkt.sport, pkt[IP].dst, pkt.dport)
-        flowid_rev = "{}:{}--{}:{}".format(pkt[IP].dst, pkt.dport, pkt[IP].src, pkt.sport)
+        flowid = "{}:{} {}:{}".format(pkt[IP].src, pkt.sport, pkt[IP].dst, pkt.dport)
+        flowid_rev = "{}:{} {}:{}".format(pkt[IP].dst, pkt.dport, pkt[IP].src, pkt.sport)
         #print(flows)
         if flowid in flows.keys():  # fwd
-            flows[flowid] = update_flow_entry(pkt=pkt, flow=flows[flowid], dir=1)
+            flows[flowid] = update_flow_entry(flow=flows[flowid], pkt=pkt, direction=1)
 
         elif flowid_rev in flows.keys():  # bwd
-            flows[flowid] = update_flow_entry(pkt=pkt, flow=flows[flowid_rev], dir=2)
+            flows[flowid] = update_flow_entry(flow=flows[flowid_rev], pkt=pkt, direction=2)
 
         else:
             flows[flowid] = create_flow_entry(pkt=pkt)
