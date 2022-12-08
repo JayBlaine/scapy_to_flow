@@ -27,6 +27,7 @@ class FlowTracker:
         :param filename: CSV file to write completed flows to
         :param flows: Dictionary of active flows
         :param timeout: Int for how long after a packet to call a flow inactive
+        :param stop: Into for how ong the sniffer is active
         """
         if filename is not None:
             self.filename = filename
