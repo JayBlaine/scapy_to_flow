@@ -15,20 +15,25 @@ class FlowTracker:
     filename: str = "{}.csv".format(dt.datetime.now().strftime("%Y-%m-%d_%H-%M"))
     sniffer: AsyncSniffer = None
     flows: dict = {}
+    # dict of Flows(cls)
     interface: str
+    timeout: int = 60
 
-    def __init__(self, iface: str, filename: str = None, flows: dict = None):
+    def __init__(self, iface: str, filename: str = None, flows: dict = None, timeout: int = None):
         """
         Main handler for tracking flows from live capture
 
         :param iface: Interface to listen on
         :param filename: CSV file to write completed flows to
         :param flows: Dictionary of active flows
+        :param timeout: Int for how long after a packet to call a flow inactive
         """
         if filename is not None:
             self.filename = filename
         if flows is not None:
             self.flows = flows
+        if timeout is not None:
+            self.timeout = timeout
 
         self.interface = iface
 
@@ -39,13 +44,21 @@ class FlowTracker:
 
         # sniff(iface=interface, session=IPSession, prn=prn_scapy(flows=flows, writefile=filename), filter='ip and (tcp or udp)')
         self.sniffer = AsyncSniffer(iface=self.interface, session=IPSession,
-                                    prn=prn_scapy(flows=self.flows, writefile=self.filename),
+                                    prn=prn_scapy(flows=self.flows, writefile=self.filename, timeout=self.timeout),
                                     filter='ip and (tcp or udp)')
 
 
-def prn_scapy(flows: dict, writefile: str):
+def prn_scapy(flows: dict, writefile: str, timeout: int):
+    """
+    Wrapper for prn in sniffer to allow passing of arguments
+
+    :param flows: Dictionary of active flows
+    :param writefile: CSV to write finished flows to
+    :param timeout: Int for how long after a packet to call a flow inactive
+    :return: Function with pkt argument for prn in sniffer
+    """
     def read_pkt(pkt: Packet):
-        flowid = "{}:{} {}:{}".format(pkt[IP].src, pkt.sport, pkt[IP].dst, pkt.dport)
+        flowid = "{}:{} {}:{}".format(pkt[IP].src, pkt.sport, pkt[IP].dst, pkt.dport)  # key for self.flows dict
         flowid_rev = "{}:{} {}:{}".format(pkt[IP].dst, pkt.dport, pkt[IP].src, pkt.sport)
         # print(flows)
         if flowid in flows.keys():  # fwd
@@ -59,10 +72,8 @@ def prn_scapy(flows: dict, writefile: str):
 
         cur_time = time.time()
         for j in flows.copy().keys():
-            if cur_time - 60 > flows[j].flow_cur_time:
-                """
-                flow over, write to returning df, remove from dict
-                """
+            if cur_time - timeout > flows[j].flow_cur_time:
+                # flow over, write to csv, remove from dict
                 flows[j].ip_all_flow_duration = flows[j].flow_cur_time - flows[j].flow_start
                 # label=0 default
                 flows[j] = flow_cleanup(flow=flows[j])
