@@ -1,6 +1,8 @@
 from flow_reader import read_pkts, flows
 import time
 
+# TODO: argparse for hcyte usage
+
 
 def main():
     t = read_pkts(interface='eno1', filename='test.csv')
