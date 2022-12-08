@@ -14,6 +14,7 @@ def prn_scapy(flows: dict, writefile: str):
     def read_pkt(pkt: Packet):
         flowid = "{}:{}--{}:{}".format(pkt[IP].src, pkt.sport, pkt[IP].dst, pkt.dport)
         flowid_rev = "{}:{}--{}:{}".format(pkt[IP].dst, pkt.dport, pkt[IP].src, pkt.sport)
+        #print(flows)
         if flowid in flows.keys():  # fwd
             flows[flowid] = update_flow_entry(pkt=pkt, flow=flows[flowid], dir=1)
 
@@ -42,10 +43,11 @@ def prn_scapy(flows: dict, writefile: str):
     return read_pkt
 
 
-def read_pkts(interface: str, filename: str = '/dev/null'):
-    flows = {}
-    # dict of flows
+flows = {}
+# dict of flows (global, import into main to reference)
 
+
+def read_pkts(interface: str, filename: str = '/dev/null'):
     with open(filename, 'w') as f:
         w_obj = csv.writer(f)
         w_obj.writerow(list(Flow.__dict__.keys())[3:63])
@@ -53,10 +55,5 @@ def read_pkts(interface: str, filename: str = '/dev/null'):
 
     #sniff(iface=interface, session=IPSession, prn=prn_scapy(flows=flows, writefile=filename), filter='ip and (tcp or udp)')
     t = AsyncSniffer(iface=interface, session=IPSession, prn=prn_scapy(flows=flows, writefile=filename), filter='ip and (tcp or udp)')
-    t.start()
-    time.sleep(75)
 
-    # TODO: IF ALERT, LABEL MALICIOUS
-    t.stop()
-
-    return 1
+    return t
