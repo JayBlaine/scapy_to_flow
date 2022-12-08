@@ -16,6 +16,15 @@ def main():
         time.sleep(1)
     # TODO: IF ALERT, LABEL MALICIOUS
     t.sniffer.stop()
+    """
+    args = parse_args()
+    alert_file = open(args.read, "r")
+    alert_lines = follow(alert_file)
+    for line in alert_lines:
+        i=1
+        # GET IP SRC IP DST FROM LINE, ----> t.flows[src:sport dst:dport].label=1
+    
+    """
 
 
 if __name__ == "__main__":
