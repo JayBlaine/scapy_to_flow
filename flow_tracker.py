@@ -47,7 +47,7 @@ class FlowTracker:
         self.sniffer = AsyncSniffer(iface=self.interface, session=IPSession,
                                     prn=prn_scapy(flows=self.flows, writefile=self.filename, timeout=self.timeout),
                                     filter='ip and (tcp or udp)', timeout=stop)
-
+                                                                # and (host 64.183.181.215 or 192.168.50.0/24)
 
 def prn_scapy(flows: dict, writefile: str, timeout: int):
     """
