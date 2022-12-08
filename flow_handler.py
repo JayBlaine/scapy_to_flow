@@ -1,9 +1,7 @@
-import pandas as pd
 from scapy.layers.inet import TCP, UDP, ICMP, IP
 from scapy.packet import Packet
 import time
 from flow import Flow
-import re
 
 
 def create_flow_entry(pkt: Packet):  # TODO: CONVERT FROM DF TO SCAPY FIELDS
