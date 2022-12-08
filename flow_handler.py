@@ -4,7 +4,7 @@ import time
 from flow import Flow
 
 
-def create_flow_entry(pkt: Packet):  # TODO: CONVERT FROM DF TO SCAPY FIELDS
+def create_flow_entry(pkt: Packet):
     new_flow = Flow()
 
     new_flow.flow_start = time.time()
@@ -82,7 +82,6 @@ def create_flow_entry(pkt: Packet):  # TODO: CONVERT FROM DF TO SCAPY FIELDS
 
 
 def update_flow_entry(flow: Flow, pkt: Packet, dir: int):  # dir 1 = fwd, 2 = bwd
-    # TODO: CONVERT FROM DF TO SCAPY FIELDS
     updated_flow = flow
     updated_flow.flow_cur_time = time.time()
 
