@@ -47,7 +47,7 @@ flows = {}
 # dict of flows (global, import into main to reference)
 
 
-def read_pkts(interface: str, filename: str = '/dev/null'):
+def read_pkts(interface: str, filename: str = 'flows.csv'):
     with open(filename, 'w') as f:
         w_obj = csv.writer(f)
         w_obj.writerow(list(Flow.__dict__.keys())[3:63])
