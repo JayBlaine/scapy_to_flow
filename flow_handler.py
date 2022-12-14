@@ -250,25 +250,14 @@ def update_flow_entry(flow: Flow, pkt: Packet, direction: int):  # dir 1 = fwd, 
 def flow_cleanup(flow: Flow):
     final_flow = flow
 
-    if final_flow.ip_all_flow_duration < 1.0:
-        final_flow.ip_flow_bytes_sec = final_flow.ip_pkt_tot_len
-        final_flow.ip_flow_pkts_sec = final_flow.ip_pkt_tot_num
+    final_flow.ip_flow_bytes_sec = final_flow.ip_pkt_tot_len / final_flow.ip_all_flow_duration
+    final_flow.ip_flow_pkts_sec = final_flow.ip_pkt_tot_num / final_flow.ip_all_flow_duration
 
-        final_flow.ip_fwd_pkts_sec = final_flow.ip_fwd_pkt_tot_num
-        final_flow.ip_fwd_bytes_sec = final_flow.ip_fwd_pkt_tot_len
-    else:
-        final_flow.ip_flow_bytes_sec = final_flow.ip_pkt_tot_len / final_flow.ip_all_flow_duration
-        final_flow.ip_flow_pkts_sec = final_flow.ip_pkt_tot_num / final_flow.ip_all_flow_duration
+    final_flow.ip_fwd_pkts_sec = final_flow.ip_fwd_pkt_tot_num / final_flow.ip_all_flow_duration
+    final_flow.ip_fwd_bytes_sec = final_flow.ip_fwd_pkt_tot_len / final_flow.ip_all_flow_duration
 
-        final_flow.ip_fwd_pkts_sec = final_flow.ip_fwd_pkt_tot_num / final_flow.ip_all_flow_duration
-        final_flow.ip_fwd_bytes_sec = final_flow.ip_fwd_pkt_tot_len / final_flow.ip_all_flow_duration
 
-    if final_flow.ip_bwd_pkt_tot_num > 0:
-        if final_flow.ip_all_flow_duration < 1.0:
-            final_flow.ip_bwd_pkts_sec = final_flow.ip_bwd_pkt_tot_num
-            final_flow.ip_bwd_bytes_sec = final_flow.ip_bwd_pkt_tot_len
-        else:
-            final_flow.ip_bwd_pkts_sec = final_flow.ip_bwd_pkt_tot_num / final_flow.ip_all_flow_duration
-            final_flow.ip_bwd_bytes_sec = final_flow.ip_bwd_pkt_tot_len / final_flow.ip_all_flow_duration
+    final_flow.ip_bwd_pkts_sec = final_flow.ip_bwd_pkt_tot_num / final_flow.ip_all_flow_duration
+    final_flow.ip_bwd_bytes_sec = final_flow.ip_bwd_pkt_tot_len / final_flow.ip_all_flow_duration
 
     return final_flow
